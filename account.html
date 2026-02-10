@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAS | Account Access</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-image: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      min-height: 100vh;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+
+<body class="flex items-center justify-center p-4">
+
+  <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+
+    <!-- Left Side - Info/Brand -->
+    <div class="md:w-1/2 bg-brand-900 p-12 text-white flex flex-col justify-between relative overflow-hidden">
+      <div class="relative z-10">
+        <div class="flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-brand-900 font-bold text-xl">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <span class="text-2xl font-bold tracking-wide">CAS System</span>
+        </div>
+        <h2 class="text-4xl font-bold leading-tight mb-6">Manage Your Academic Life</h2>
+        <p class="text-brand-100 text-lg">Secure access for Students, Faculty, and Administrators.</p>
+      </div>
+
+      <div class="relative z-10 mt-12 space-y-4">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <div>
+            <p class="font-semibold">Secure Login</p>
+            <p class="text-sm text-brand-200">End-to-end encryption</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div>
+            <p class="font-semibold">24/7 Access</p>
+            <p class="text-sm text-brand-200">Anytime, anywhere</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decor circles -->
+      <div
+        class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob">
+      </div>
+      <div
+        class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000">
+      </div>
+    </div>
+
+    <!-- Right Side - Forms -->
+    <div class="md:w-1/2 p-12 bg-white relative">
+
+      <!-- Tab Switcher -->
+      <div class="flex space-x-6 mb-8 border-b">
+        <button onclick="switchTab('login')" id="tab-login"
+          class="pb-3 text-brand-600 border-b-2 border-brand-600 font-semibold focus:outline-none transition-colors">Login</button>
+        <button onclick="switchTab('register')" id="tab-register"
+          class="pb-3 text-gray-400 hover:text-gray-600 font-medium focus:outline-none transition-colors">Create
+          Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" action="/login" method="POST" class="space-y-5 animate-fade-in">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-envelope text-gray-400"></i>
+            </div>
+            <!-- Added name="email" for Flask -->
+            <input type="email" name="email" id="loginEmail" required
+              class="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+              placeholder="name@college.edu or Ojas42Zeal@gmail.com">
+
+            <!-- Live Badge Container -->
+            <div id="roleBadge"
+              class="absolute right-3 top-3 hidden px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">
+            </div>
+          </div>
+          <p id="loginHint" class="mt-1 text-xs text-brand-600 hidden"></p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-lock text-gray-400"></i>
+            </div>
+            <input type="password" name="password" required
+              class="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+              placeholder="••••••••">
+          </div>
+          <div class="flex justify-end mt-1">
+            <a href="#" class="text-xs text-brand-600 hover:text-brand-700 font-medium">Forgot Password?</a>
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+          Sign In
+        </button>
+      </form>
+
+      <!-- Register Form (Hidden by default) -->
+      <form id="createForm" class="space-y-4 hidden animate-fade-in">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-user text-gray-400"></i>
+            </div>
+            <input type="text" id="regName" required
+              class="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 transition-all"
+              placeholder="John Doe">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-envelope text-gray-400"></i>
+            </div>
+            <input type="email" id="regEmail" required
+              class="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 transition-all"
+              placeholder="student@college.edu">
+          </div>
+        </div>
+
+
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-lock text-gray-400"></i>
+            </div>
+            <input type="password" id="regPassword" required
+              class="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 transition-all"
+              placeholder="Create a strong password">
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full bg-brand-900 hover:bg-brand-800 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+          Create Account
+        </button>
+      </form>
+
+      <div id="statusMessage" class="mt-6 hidden p-3 rounded-lg text-sm text-center"></div>
+
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:5000'; // Updated port to match app.py
+
+    function switchTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const createForm = document.getElementById('createForm');
+      const tabLogin = document.getElementById('tab-login');
+      const tabRegister = document.getElementById('tab-register');
+      const statusMsg = document.getElementById('statusMessage');
+
+      statusMsg.classList.add('hidden');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        createForm.classList.add('hidden');
+
+        tabLogin.classList.add('text-brand-600', 'border-b-2', 'border-brand-600');
+        tabLogin.classList.remove('text-gray-400');
+
+        tabRegister.classList.remove('text-brand-600', 'border-b-2', 'border-brand-600');
+        tabRegister.classList.add('text-gray-400');
+      } else {
+        loginForm.classList.add('hidden');
+        createForm.classList.remove('hidden');
+
+        tabRegister.classList.add('text-brand-600', 'border-b-2', 'border-brand-600');
+        tabRegister.classList.remove('text-gray-400');
+
+        tabLogin.classList.remove('text-brand-600', 'border-b-2', 'border-brand-600');
+        tabLogin.classList.add('text-gray-400');
+      }
+    }
+
+    function showStatus(msg, type) {
+      const el = document.getElementById('statusMessage');
+      el.textContent = msg;
+      el.className = `mt-6 p-3 rounded-lg text-sm text-center ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+      el.classList.remove('hidden');
+    }
+
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      const originalText = btn.textContent;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+      btn.disabled = true;
+
+      const payload = {
+        email: document.getElementById('regEmail').value,
+        name: document.getElementById('regName').value,
+        password: document.getElementById('regPassword').value
+      };
+
+      try {
+        const res = await fetch('/api/accounts/create', { // Use relative path
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.ok || data.status === 'success') {
+          showStatus(data.message || 'Account created! Redirecting...', 'success');
+          // Auto-redirect to the specific dashboard
+          setTimeout(() => {
+            window.location.href = data.redirect || data.redirect_url || '/';
+          }, 1500);
+        } else {
+          showStatus(data.message || 'Registration failed. Check your email format.', 'error');
+        }
+      } catch (err) {
+        showStatus('Connection failed. Is the server running?', 'error');
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    });
+
+
+    // Live Role Detection Logic
+    const emailInput = document.getElementById('loginEmail');
+    const roleBadge = document.getElementById('roleBadge');
+    const loginHint = document.getElementById('loginHint');
+
+    if (emailInput) {
+      emailInput.addEventListener('keyup', (e) => {
+        const val = e.target.value;
+        let role = null;
+        let text = "";
+        let color = "";
+        let hint = "";
+
+        // Check patterns (Mirroring app.py logic)
+        // Strict Pattern: NameRollNumberCollegeName@gmail.com
+        if (val.toLowerCase().includes('admin')) {
+          role = 'Admin';
+          text = 'ADMINISTRATOR';
+          color = 'bg-red-500 text-white';
+        }
+        else if (val.toLowerCase().includes('faculty') || val.toLowerCase().includes('prof')) {
+          role = 'Faculty';
+          text = 'FACULTY';
+          color = 'bg-purple-600 text-white';
+          hint = "Faculty keyword detected";
+        }
+        else if (val.match(/^[A-Za-z]+\d+[A-Za-z]+@gmail\.com$/i)) {
+          role = 'Student';
+          text = 'STUDENT: VALID';
+          color = 'bg-emerald-500 text-white';
+          hint = "Matches NameRollNumberCollege@gmail.com";
+        }
+        else if (val.length > 5) {
+          role = 'Invalid';
+          text = 'INVALID FORMAT';
+          color = 'bg-gray-200 text-gray-500';
+          hint = "Needs: NameRollNumberCollege@gmail.com";
+        }
+
+        // Update UI
+        if (role) {
+          roleBadge.className = `absolute right-3 top-3 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${color}`;
+          roleBadge.textContent = text;
+          roleBadge.classList.remove('hidden');
+
+          if (hint) {
+            loginHint.textContent = hint;
+            loginHint.classList.remove('hidden');
+          } else {
+            loginHint.classList.add('hidden');
+          }
+        } else {
+          roleBadge.classList.add('hidden');
+          loginHint.classList.add('hidden');
+        }
+      });
+    }
+
+  </script>
+</body>
+
+</html>

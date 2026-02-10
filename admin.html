@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - College Administrative System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #e0f2fe;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .left-panel {
+            width: 400px;
+            min-width: 350px;
+            background: #bae6fd;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            height: auto;
+            max-height: calc(100vh - 7rem);
+            overflow-y: auto;
+        }
+
+        /* Mobile Responsive Overrides */
+        @media (max-width: 1024px) {
+            .left-panel {
+                width: 100%;
+                height: auto;
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 1rem;
+            }
+
+            .main-content-wrapper {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+
+            .camera-container {
+                margin-left: 0 !important;
+                height: 50vh !important;
+                padding: 1rem !important;
+            }
+        }
+
+        .main-camera {
+            background: black;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            /* Fill flex container */
+        }
+
+        #main-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: black;
+        }
+
+        .overlay-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #no-camera {
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .status-active {
+            background-color: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .status-inactive {
+            background-color: #ef4444;
+        }
+
+        /* Hide scrollbar but allow scroll */
+        .left-panel::-webkit-scrollbar,
+        #live-logs-container::-webkit-scrollbar,
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .left-panel::-webkit-scrollbar-track,
+        #live-logs-container::-webkit-scrollbar-track,
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .left-panel::-webkit-scrollbar-thumb,
+        #live-logs-container::-webkit-scrollbar-thumb,
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 10px;
+        }
+
+        .left-panel::-webkit-scrollbar-thumb:hover,
+        #live-logs-container::-webkit-scrollbar-thumb:hover,
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+
+<body class="bg-[#e0f2fe] h-screen overflow-hidden flex flex-col">
+
+    <!-- Top Bar -->
+    <div
+        class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-30 border-b border-gray-200 flex-shrink-0">
+        <div class="flex items-center">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <i class="fas fa-user-shield text-white text-sm"></i>
+            </div>
+            <h1 class="text-lg font-bold text-gray-800">Admin Dashboard</h1>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <a href="/account" class="text-gray-500 hover:text-red-600 transition-colors" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 relative flex overflow-hidden main-content-wrapper">
+        <!-- Left Panel Container (Fixed width on desktop, full on mobile) -->
+        <div class="p-4 h-full flex-shrink-0">
+            <div class="left-panel">
+                <!-- Content same as before, just wrapped -->
+                <!-- Admin Profile Card -->
+                <div
+                    class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 mb-4 shadow-xl text-white flex-shrink-0">
+                    <div class="flex items-center mb-4">
+                        <div
+                            class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-user-shield text-3xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold">Admin Profile</h2>
+                            <p class="text-sm text-blue-100" id="admin-name">System Administrator</p>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-lg p-3 backdrop-blur-sm">
+                        <div class="flex justify-between items-center text-sm mb-1">
+                            <span class="text-blue-100">User ID:</span>
+                            <span class="font-semibold">Admin</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-blue-100">Department:</span>
+                            <span class="font-semibold" id="admin-dept">Administration</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Camera Controls Card -->
+                <div class="bg-white rounded-xl p-5 mb-4 shadow-md flex-shrink-0">
+                    <h3 class="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Camera Controls</h3>
+                    <div class="space-y-2">
+                        <button id="toggle-camera"
+                            class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center">
+                            <i class="fas fa-server mr-2"></i> Start Server Camera
+                        </button>
+                        <button id="toggle-browser-camera"
+                            class="w-full bg-emerald-600 text-white py-2.5 rounded-lg hover:bg-emerald-700 transition-all shadow-sm flex items-center justify-center">
+                            <i class="fas fa-laptop mr-2"></i> Start Browser Camera (Cloud)
+                        </button>
+                        <hr class="my-2 border-gray-100">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">External Camera URL
+                                (CCTV)</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="external-camera-url" placeholder="rtsp://... or http://..."
+                                    class="flex-1 px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <button id="start-external-camera"
+                                    class="bg-indigo-600 text-white px-3 rounded-lg hover:bg-indigo-700 text-xs">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button id="test-detection"
+                            class="w-full bg-orange-600 text-white py-2.5 rounded-lg hover:bg-orange-700 transition-all shadow-sm flex items-center justify-center"
+                            disabled>
+                            <i class="fas fa-search mr-2"></i> Force Detect Now (Test)
+                        </button>
+                        <button id="fallback-camera"
+                            class="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 transition-all shadow-sm flex items-center justify-center">
+                            <i class="fas fa-desktop mr-2"></i> Launch Desktop App (Local Only)
+                        </button>
+                    </div>
+                    <button id="logout-btn"
+                        class="mt-4 w-full bg-gray-600 text-white py-2.5 rounded-lg hover:bg-gray-700 transition-all shadow-sm flex items-center justify-center"
+                        onclick="showView('account')">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </button>
+                </div>
+
+                <!-- System Status Card -->
+                <div class="bg-white rounded-xl p-6 mb-4 shadow-md flex-shrink-0">
+                    <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">System Status</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-base text-gray-600">Camera</span>
+                            <div class="flex items-center">
+                                <span id="camera-status-indicator" class="status-indicator status-inactive"></span>
+                                <span id="camera-status" class="text-base font-bold text-red-600">Stopped</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-base text-gray-600">Detection</span>
+                            <div class="flex items-center">
+                                <span id="detection-indicator" class="status-indicator status-inactive"></span>
+                                <span id="detection-mode" class="text-base font-bold text-red-600">Inactive</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-base text-gray-600">Server</span>
+                            <div class="flex items-center">
+                                <span id="connection-indicator" class="status-indicator status-inactive"></span>
+                                <span id="connection-status"
+                                    class="text-base font-bold text-red-600">Disconnected</span>
+                            </div>
+                        </div>
+                        <div class="border-t pt-3 mt-3">
+                            <div class="flex justify-between text-base">
+                                <span class="text-gray-600">Frames</span>
+                                <span id="frame-count" class="font-bold text-gray-800 text-lg">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Attendance Logs Card -->
+                <div class="bg-white rounded-xl p-6 shadow-md flex-1 overflow-auto custom-scrollbar min-h-[450px]">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center">
+                            <i class="fas fa-list mr-2 text-indigo-600"></i> Attendance Logs
+                        </h3>
+                        <button id="refresh-logs"
+                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs hover:bg-indigo-700 transition-colors shadow-sm">
+                            <i class="fas fa-sync-alt mr-1"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto h-full">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="py-4 px-4 text-left font-semibold text-gray-600">Time</th>
+                                    <th class="py-4 px-4 text-left font-semibold text-gray-600">Student</th>
+                                    <th class="py-4 px-4 text-left font-semibold text-gray-600">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-body" class="divide-y divide-gray-100 italic"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Main Camera View (Flexible) -->
+        <div class="flex-1 p-6 h-full flex flex-col justify-center camera-container">
+            <div class="main-camera w-full h-full relative" style="max-height: 85vh;">
+                <!-- Server-side MJPEG Stream -->
+                <img id="video-feed" src="" class="w-full h-full object-contain hidden" crossorigin="anonymous">
+
+                <!-- Browser-side Webcam Preview -->
+                <video id="browser-video" autoplay playsinline class="w-full h-full object-contain hidden"></video>
+                <canvas id="capture-canvas" class="hidden"></canvas>
+
+                <div id="no-camera"
+                    class="absolute inset-0 flex flex-col items-center justify-center text-white text-2xl">
+                    <i class="fas fa-video-slash mb-4 text-6xl"></i>
+                    <p>Camera Stopped</p>
+                    <p class="text-lg mt-2">Click "Start Camera" to begin server stream</p>
+                </div>
+            </div>
+        </div>
+    </div> <!-- End Main Workspace -->
+
+    <!-- User Management Modal -->
+    <div id="user-manager-modal"
+        class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div
+            class="bg-white w-full max-w-6xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all scale-100">
+            <!-- Header -->
+            <div class="bg-indigo-700 text-white px-8 py-4 flex justify-between items-center shadow-lg">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center"><i class="fas fa-users-cog mr-3"></i> User Role
+                        Management</h2>
+                    <p class="text-indigo-200 text-sm mt-1">Drag and drop users to assign roles instantly.</p>
+                </div>
+                <button onclick="closeUserManager()"
+                    class="text-white hover:text-red-200 transition-colors bg-white bg-opacity-10 p-2 rounded-full hover:bg-opacity-20">
+                    <i class="fas fa-times text-xl w-6 h-6 flex items-center justify-center"></i>
+                </button>
+            </div>
+
+            <!-- Kanban Board -->
+            <div class="flex-1 overflow-hidden p-8 bg-gray-100 grid grid-cols-3 gap-8">
+
+                <!-- Column 1: Students -->
+                <div class="flex flex-col h-full">
+                    <div
+                        class="flex items-center justify-between mb-4 bg-white p-3 rounded-lg shadow-sm border-t-4 border-blue-500">
+                        <h3 class="font-bold text-gray-700 uppercase tracking-wider">Students</h3>
+                        <span id="count-student"
+                            class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">0</span>
+                    </div>
+                    <div id="col-student"
+                        class="flex-1 bg-gray-200 rounded-xl p-4 overflow-y-auto space-y-3 drop-zone transition-colors"
+                        ondrop="drop(event, 'student')" ondragover="allowDrop(event)" ondragenter="dragEnter(event)"
+                        ondragleave="dragLeave(event)">
+                        <!-- Student Cards Go Here -->
+                    </div>
+                </div>
+
+                <!-- Column 2: Faculty -->
+                <div class="flex flex-col h-full">
+                    <div
+                        class="flex items-center justify-between mb-4 bg-white p-3 rounded-lg shadow-sm border-t-4 border-purple-500">
+                        <h3 class="font-bold text-gray-700 uppercase tracking-wider">Faculty</h3>
+                        <span id="count-faculty"
+                            class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded">0</span>
+                    </div>
+                    <div id="col-faculty"
+                        class="flex-1 bg-gray-200 rounded-xl p-4 overflow-y-auto space-y-3 drop-zone transition-colors"
+                        ondrop="drop(event, 'faculty')" ondragover="allowDrop(event)" ondragenter="dragEnter(event)"
+                        ondragleave="dragLeave(event)">
+                        <!-- Faculty Cards Go Here -->
+                    </div>
+                </div>
+
+                <!-- Column 3: Admins -->
+                <div class="flex flex-col h-full">
+                    <div
+                        class="flex items-center justify-between mb-4 bg-white p-3 rounded-lg shadow-sm border-t-4 border-red-500">
+                        <h3 class="font-bold text-gray-700 uppercase tracking-wider">Administrators</h3>
+                        <span id="count-admin"
+                            class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded">0</span>
+                    </div>
+                    <div id="col-admin"
+                        class="flex-1 bg-gray-200 rounded-xl p-4 overflow-y-auto space-y-3 drop-zone transition-colors"
+                        ondrop="drop(event, 'admin')" ondragover="allowDrop(event)" ondragenter="dragEnter(event)"
+                        ondragleave="dragLeave(event)">
+                        <!-- Admin Cards Go Here -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-white p-4 border-t flex justify-between items-center text-sm text-gray-500">
+                <p><i class="fas fa-info-circle mr-1"></i> Changes are saved automatically upon drop.</p>
+                <button onclick="fetchUsers()" class="text-indigo-600 hover:text-indigo-800 font-semibold"><i
+                        class="fas fa-sync-alt mr-1"></i> Refresh Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let isCameraRunning = false;
+        let isBrowserCameraRunning = false;
+        let browserCameraInterval = null;
+        let isExternalCameraRunning = false;
+
+        function updateCameraUI(isRunning) {
+            const statusEl = document.getElementById('camera-status');
+            const indicatorEl = document.getElementById('camera-status-indicator');
+            const toggleBtn = document.getElementById('toggle-camera');
+            const noCameraEl = document.getElementById('no-camera');
+            const videoFeed = document.getElementById('video-feed');
+            const testBtn = document.getElementById('test-detection');
+
+            if (isRunning) {
+                statusEl.textContent = 'Running';
+                statusEl.className = 'font-bold text-green-600';
+                indicatorEl.className = 'status-indicator status-active';
+                toggleBtn.innerHTML = '<i class="fas fa-stop mr-2"></i> Stop Camera';
+                toggleBtn.className = 'w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 mb-3 transition-colors';
+                noCameraEl.style.display = 'none';
+                videoFeed.classList.remove('hidden');
+                videoFeed.onerror = function() {
+                    videoFeed.src = '';
+                    videoFeed.classList.add('hidden');
+                    noCameraEl.style.display = 'flex';
+                    noCameraEl.querySelector('p').textContent = 'Stream failed. Click Start Camera again.';
+                };
+                videoFeed.src = `${API_BASE}/video_feed?t=${new Date().getTime()}`;
+                if (testBtn) testBtn.disabled = false;
+            } else {
+                statusEl.textContent = 'Stopped';
+                statusEl.className = 'font-bold text-red-600';
+                indicatorEl.className = 'status-indicator status-inactive';
+                toggleBtn.innerHTML = '<i class="fas fa-video mr-2"></i> Start Camera';
+                toggleBtn.className = 'w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-3 transition-colors';
+                noCameraEl.style.display = 'flex';
+                videoFeed.classList.add('hidden');
+                videoFeed.src = "";
+                if (testBtn) testBtn.disabled = true;
+            }
+        }
+
+        async function toggleCamera() {
+            const toggleBtn = document.getElementById('toggle-camera');
+            if (isBrowserCameraRunning || isExternalCameraRunning) {
+                showNotification('Stop other camera modes first', 'warning');
+                return;
+            }
+            toggleBtn.disabled = true;
+
+            try {
+                if (isCameraRunning) {
+                    await fetch(`${API_BASE}/api/camera/stop`, { method: 'POST' });
+                    isCameraRunning = false;
+                    showNotification('Server camera stopped', 'success');
+                } else {
+                    await fetch(`${API_BASE}/api/camera/start`, { method: 'POST' });
+                    isCameraRunning = true;
+                    showNotification('Server camera started', 'success');
+                }
+                updateCameraUI(isCameraRunning);
+            } catch (err) {
+                console.error('Camera toggle error:', err);
+                showNotification('Failed to toggle server camera', 'error');
+            } finally {
+                toggleBtn.disabled = false;
+            }
+        }
+
+        async function toggleBrowserCamera() {
+            const toggleBtn = document.getElementById('toggle-browser-camera');
+            if (isCameraRunning || isExternalCameraRunning) {
+                showNotification('Stop other camera modes first', 'warning');
+                return;
+            }
+
+            const video = document.getElementById('browser-video');
+            const noCameraEl = document.getElementById('no-camera');
+            const statusEl = document.getElementById('camera-status');
+            const indicatorEl = document.getElementById('camera-status-indicator');
+
+            if (isBrowserCameraRunning) {
+                stopBrowserCamera();
+                showNotification('Browser camera stopped', 'success');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+                noCameraEl.style.display = 'none';
+                isBrowserCameraRunning = true;
+
+                toggleBtn.innerHTML = '<i class="fas fa-stop mr-2"></i> Stop Browser Camera';
+                toggleBtn.classList.replace('bg-emerald-600', 'bg-red-600');
+
+                statusEl.textContent = 'Running (Browser)';
+                statusEl.className = 'font-bold text-emerald-600';
+                indicatorEl.className = 'status-indicator status-active';
+
+                // Start periodic capture
+                browserCameraInterval = setInterval(captureAndSendBrowserFrame, 2000);
+                showNotification('Browser camera started', 'success');
+            } catch (err) {
+                console.error('Browser camera error:', err);
+                showNotification('Camera access denied or not found', 'error');
+            }
+        }
+
+        function stopBrowserCamera() {
+            const toggleBtn = document.getElementById('toggle-browser-camera');
+            const video = document.getElementById('browser-video');
+            const noCameraEl = document.getElementById('no-camera');
+            const statusEl = document.getElementById('camera-status');
+            const indicatorEl = document.getElementById('camera-status-indicator');
+
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            video.classList.add('hidden');
+            noCameraEl.style.display = 'flex';
+            isBrowserCameraRunning = false;
+            clearInterval(browserCameraInterval);
+
+            toggleBtn.innerHTML = '<i class="fas fa-laptop mr-2"></i> Start Browser Camera (Cloud)';
+            toggleBtn.classList.replace('bg-red-600', 'bg-emerald-600');
+
+            statusEl.textContent = 'Stopped';
+            statusEl.className = 'font-bold text-red-600';
+            indicatorEl.className = 'status-indicator status-inactive';
+        }
+
+        async function captureAndSendBrowserFrame() {
+            const video = document.getElementById('browser-video');
+            const canvas = document.getElementById('capture-canvas');
+            if (!isBrowserCameraRunning || video.paused || video.ended) return;
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            const imageBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+            try {
+                const res = await fetch(`${API_BASE}/api/recognize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageBase64 })
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.detections.faces.length > 0) {
+                    // Update frame count or UI with detection info
+                    const count = document.getElementById('frame-count');
+                    if (count) count.textContent = parseInt(count.textContent) + 1;
+                }
+            } catch (err) {
+                console.warn('Silent fail: Browser frame sync error', err);
+            }
+        }
+
+        async function startExternalCamera() {
+            const urlInput = document.getElementById('external-camera-url');
+            const url = urlInput.value.trim();
+            if (!url) {
+                showNotification('Please enter a camera URL', 'warning');
+                return;
+            }
+
+            if (isCameraRunning || isBrowserCameraRunning) {
+                showNotification('Stop other camera modes first', 'warning');
+                return;
+            }
+
+            try {
+                showNotification('Connecting to external camera...', 'info');
+                const res = await fetch(`${API_BASE}/api/camera/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                const data = await res.json();
+                if (data.status === 'started') {
+                    isExternalCameraRunning = true;
+                    isCameraRunning = true; // Treats as a server camera
+                    updateCameraUI(true);
+                    showNotification('External CCTV connected', 'success');
+                } else {
+                    showNotification('Failed to connect: ' + data.error, 'error');
+                }
+            } catch (err) {
+                showNotification('CCTV connection failed', 'error');
+            }
+        }
+
+        // Initialize
+        document.getElementById('toggle-camera').onclick = toggleCamera;
+
+        document.getElementById('toggle-camera').onclick = toggleCamera;
+
+        async function detectOnce() {
+            const btn = document.getElementById('test-detection');
+            const videoFeed = document.getElementById('video-feed');
+
+            if (!isCameraRunning || !videoFeed.src) {
+                showNotification('Camera must be running to test detection', 'error');
+                return;
+            }
+
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing...';
+
+            try {
+                // Visual feedback
+                videoFeed.style.opacity = '0.7';
+                setTimeout(() => videoFeed.style.opacity = '1', 150);
+
+                // Capture frame to canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = videoFeed.naturalWidth || 640;
+                canvas.height = videoFeed.naturalHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+
+                const imageBase64 = canvas.toDataURL('image/jpeg');
+
+                const res = await fetch(`${API_BASE}/api/recognize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageBase64 })
+                });
+
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    const faces = data.detections.faces;
+                    if (faces.length > 0) {
+                        const names = faces.map(f => f.identity || 'Unknown').join(', ');
+                        showNotification(`Detected ${faces.length} face(s): ${names}`, 'success');
+                    } else {
+                        showNotification('No faces detected in this snapshot.', 'warning');
+                    }
+                } else {
+                    throw new Error(data.error || 'Server returned error');
+                }
+            } catch (err) {
+                console.error('Detection test failed:', err);
+                showNotification('Detection test failed. ' + err.message, 'error');
+            } finally {
+                if (isCameraRunning) btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        async function logAttendance(row) {
+            try {
+                await fetch(`${API_BASE}/api/attendance/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        course: 'CS-301',
+                        date: new Date().toISOString().slice(0, 10),
+                        actor: 'admin-camera',
+                        rows: [row]
+                    })
+                });
+                refreshLogs();
+            } catch (err) {
+                console.error('Failed to log attendance:', err);
+            }
+        }
+
+        async function refreshLogs() {
+            try {
+                // Changed to fetch Audit Logs (which capture "Live Auto-Attendance")
+                const res = await fetch(`${API_BASE}/api/audit/logs`);
+                const data = await res.json();
+                const tbody = document.getElementById('logs-body');
+                tbody.innerHTML = '';
+
+                // Api returns { logs: [...] }
+                const logs = data.logs || [];
+
+                if (logs.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td colspan="4" class="py-4 px-3 text-center text-gray-500">No logs yet</td>';
+                    tbody.appendChild(tr);
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    const timeStr = log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : '-';
+                    // Parse details if allowed
+                    let detailText = log.message || '';
+                    if (!detailText && log.details) {
+                        // Fallback attempt to read details
+                        try {
+                            if (typeof log.details === 'object') detailText = log.details.slm_log || JSON.stringify(log.details);
+                            else detailText = log.details;
+                        } catch (e) { }
+                    }
+
+                    tr.innerHTML = `
+    <td class="py-2 px-3 text-xs text-gray-500">${timeStr}</td>
+    <td class="py-2 px-3 font-medium text-gray-800">${log.student || log.actor || 'System'}</td>
+    <td class="py-2 px-3 text-sm text-gray-600">${detailText}</td>
+    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Failed to refresh logs:', err);
+            }
+        }
+
+        function showNotification(msg, type = 'info') {
+            const div = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+            div.className = `fixed top-8 right-8 px-6 py-4 rounded-lg text-white z-50 shadow-lg ${bgColor}`;
+            div.innerHTML = `<i
+        class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>${msg}`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 5000);
+        }
+
+        async function launchFallbackCamera() {
+            try {
+                showNotification('Launching desktop camera application...', 'info');
+
+                const res = await fetch(`${API_BASE}/api/camera/fallback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await res.json();
+
+                if (data.ok) {
+                    showNotification('Desktop camera application is launching! A new window should open shortly.', 'success');
+                    console.log('Fallback camera launched:', data.message);
+                } else {
+                    showNotification('Failed to launch desktop camera: ' + (data.error || 'Unknown error'), 'error');
+                    console.error('Failed to launch fallback camera:', data);
+                }
+            } catch (err) {
+                console.error('Error launching fallback camera:', err);
+                showNotification('Error launching desktop camera. Make sure Flask server is running.', 'error');
+            }
+        }
+
+        async function testServerConnection() {
+            try {
+                const res = await fetch(`${API_BASE}/api/students`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (res.ok) {
+                    updateConnectionStatus('connected');
+                    console.log('Server connection test: OK - Server is reachable');
+                    return true;
+                } else {
+                    updateConnectionStatus('error');
+                    console.warn('Server connection test: Failed with status', res.status);
+                    return false;
+                }
+            } catch (err) {
+                updateConnectionStatus('error');
+                console.error('Server connection test failed:', err);
+                if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                    showNotification('Cannot connect to server. Make sure Flask server is running on ' + API_BASE, 'error');
+                }
+                return false;
+            }
+        }
+
+        // Periodic connection health check
+        function startConnectionHealthCheck() {
+            setInterval(async () => {
+                if (!isCameraRunning) {
+                    // Only check server if camera is not running (camera stream will handle its own status)
+                    await testServerConnection();
+                }
+            }, 30000); // Check every 30 seconds
+        }
+
+        // Refresh Live Logs
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing admin dashboard...');
+
+            // Polling for detection status
+            setInterval(async () => {
+                if (!isCameraRunning) return;
+                try {
+                    const res = await fetch(`${API_BASE}/api/detection_status`);
+                    const data = await res.json();
+
+                    const indicator = document.getElementById('detection-indicator');
+                    const text = document.getElementById('detection-mode');
+
+                    if (data.active) {
+                        indicator.className = 'status-indicator status-active';
+                        text.className = 'font-bold text-green-600';
+                        text.textContent = `Active (${data.count} found)`;
+                    } else {
+                        indicator.className = 'status-indicator status-inactive';
+                        text.className = 'font-bold text-red-600';
+                        text.textContent = 'Inactive';
+                    }
+
+                    // Update new stats
+                    const camCountEl = document.getElementById('active-cameras');
+                    if (camCountEl) camCountEl.textContent = data.camera_count || 0;
+
+                    const frameCountEl = document.getElementById('frame-count');
+                    if (frameCountEl) frameCountEl.textContent = data.frame_count || 0;
+
+                } catch (e) {
+                    console.error("Status check failed", e);
+                }
+            }, 1000);
+
+            // 1. Attach Event Listeners IMMEDIATELY so buttons work
+            const toggleBtn = document.getElementById('toggle-camera');
+            if (toggleBtn) toggleBtn.addEventListener('click', toggleCamera);
+
+            const toggleBrowserBtn = document.getElementById('toggle-browser-camera');
+            if (toggleBrowserBtn) toggleBrowserBtn.addEventListener('click', toggleBrowserCamera);
+
+            const startExternalBtn = document.getElementById('start-external-camera');
+            if (startExternalBtn) startExternalBtn.addEventListener('click', startExternalCamera);
+
+            const toggleBtnBottom = document.getElementById('toggle-camera-bottom');
+            if (toggleBtnBottom) toggleBtnBottom.addEventListener('click', toggleCamera);
+
+
+            const testBtn = document.getElementById('test-detection');
+            if (testBtn) testBtn.addEventListener('click', detectOnce);
+
+            const refreshBtn = document.getElementById('refresh-logs');
+            if (refreshBtn) refreshBtn.addEventListener('click', refreshLogs);
+
+            const fallbackBtn = document.getElementById('fallback-camera');
+            if (fallbackBtn) fallbackBtn.addEventListener('click', launchFallbackCamera);
+
+            // Refresh device buttons
+            const refreshDevicesBtn = document.getElementById('refresh-devices');
+            if (refreshDevicesBtn) refreshDevicesBtn.addEventListener('click', () => {
+                showNotification('Refreshing camera devices...', 'info');
+                populateCameraSelect();
+            });
+
+            const refreshUSBBtn = document.getElementById('refresh-usb');
+            if (refreshUSBBtn) refreshUSBBtn.addEventListener('click', () => {
+                showNotification('Refreshing USB devices...', 'info');
+                populateUSBSelect();
+            });
+
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    if (isCameraRunning) stopCamera();
+                    localStorage.clear();
+                    window.location.href = '/account';
+                });
+            }
+
+            // 2. Load Profile
+            loadAdminProfile();
+
+            // 3. Start Background Validations (do not await them to block UI)
+            // Running these in parallel promises ensures one failure doesn't stop others
+            (async () => {
+                try { await populateCameraSelect(); } catch (e) { console.error(e); }
+                try { await refreshLogs(); } catch (e) { console.error(e); }
+                try { await testServerConnection(); } catch (e) { console.error(e); }
+            })();
+
+            // 4. Start periodic connection health check
+            startConnectionHealthCheck();
+
+            // 5. Refresh logs every 2 seconds for dynamic updates
+            setInterval(refreshLogs, 2000);
+
+            console.log('Admin dashboard initialized (Listeners attached)');
+        });
+
+        // Helper Functions
+        async function populateCameraSelect() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+                const select = document.getElementById('camera-select');
+                if (!select) return;
+
+                select.innerHTML = '<option value="">-- Select Camera --</option>';
+
+                videoDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Camera ${index + 1}`;
+                    select.appendChild(option);
+                });
+
+                console.log(`Found ${videoDevices.length} camera(s)`);
+            } catch (err) {
+                console.error('Failed to enumerate cameras:', err);
+            }
+        }
+
+        async function populateUSBSelect() {
+            // USB devices are just video devices detected via USB
+            await populateCameraSelect();
+        }
+
+        async function loadAdminProfile() {
+            // Load from session or default
+            const nameEl = document.getElementById('admin-name');
+            const deptEl = document.getElementById('admin-dept');
+
+            // Try to get from localStorage or server session
+            const userName = localStorage.getItem('admin_name') || 'Admin User';
+            const userDept = localStorage.getItem('admin_dept') || 'Administration';
+
+            if (nameEl) nameEl.textContent = userName;
+            if (deptEl) deptEl.textContent = userDept;
+        }
+
+        function updateConnectionStatus(status) {
+            const indicator = document.getElementById('connection-indicator');
+            const text = document.getElementById('connection-status');
+
+            if (status === 'connected') {
+                indicator.className = 'status-indicator status-active';
+                text.className = 'font-bold text-green-600';
+                text.textContent = 'Connected';
+            } else {
+                indicator.className = 'status-indicator status-inactive';
+                text.className = 'font-bold text-red-600';
+                text.textContent = 'Disconnected';
+            }
+        }
+
+        // User Management Functions
+        function openUserManager() {
+            document.getElementById('user-manager-modal').classList.remove('hidden');
+            fetchUsers();
+            if (isCameraRunning) stopCamera(); // Pause camera to save resources
+        }
+
+        function closeUserManager() {
+            document.getElementById('user-manager-modal').classList.add('hidden');
+        }
+
+        async function fetchUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/api/users`);
+                const data = await res.json();
+
+                if (data.users) {
+                    renderUserBoard(data.users);
+                }
+            } catch (err) {
+                console.error("Failed to fetch users:", err);
+                showNotification("Failed to load users", "error");
+            }
+        }
+
+        function renderUserBoard(users) {
+            // Clear columns
+            const cols = {
+                student: document.getElementById('col-student'),
+                faculty: document.getElementById('col-faculty'),
+                admin: document.getElementById('col-admin')
+            };
+            const counts = {
+                student: document.getElementById('count-student'),
+                faculty: document.getElementById('count-faculty'),
+                admin: document.getElementById('count-admin')
+            };
+
+            Object.values(cols).forEach(el => el.innerHTML = '');
+            let countVals = { student: 0, faculty: 0, admin: 0 };
+
+            users.forEach(user => {
+                const role = user.role ? user.role.toLowerCase() : 'student';
+                // Fallback for pending or unknown roles -> Student column for now or create a Pending one if needed
+                // Assuming roles are 'student', 'faculty', 'admin'
+                const targetCol = cols[role] || cols['student'];
+                if (countVals[role] !== undefined) countVals[role]++;
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-lg shadow cursor-move hover:shadow-md transition-shadow border-l-4";
+
+                // Color code border
+                if (role === 'admin') card.classList.add('border-red-500');
+                else if (role === 'faculty') card.classList.add('border-purple-500');
+                else card.classList.add('border-blue-500');
+
+                card.draggable = true;
+                card.ondragstart = (e) => drag(e, user);
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between pointer-events-none"> <!-- content not draggable to prevent selection issues -->
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3 text-gray-600 font-bold text-xs">
+                                ${user.name.charAt(0)}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm">${user.name}</h4>
+                                <p class="text-xs text-gray-500">${user.email}</p>
+                            </div>
+                        </div>
+                        ${user.has_face ? '<i class="fas fa-smile text-green-500" title="Face Registered"></i>' : '<i class="fas fa-user-slash text-gray-300" title="No Face Data"></i>'}
+                    </div>
+                `;
+                targetCol.appendChild(card);
+            });
+
+            // Update badges
+            Object.keys(counts).forEach(k => counts[k].textContent = countVals[k]);
+        }
+
+        let draggedUser = null;
+
+        function drag(ev, user) {
+            draggedUser = user;
+            ev.dataTransfer.effectAllowed = "move";
+            // Optional: Set custom drag image
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function dragEnter(ev) {
+            ev.preventDefault();
+            if (ev.currentTarget.classList.contains('drop-zone')) {
+                ev.currentTarget.classList.add('bg-indigo-100');
+            }
+        }
+
+        function dragLeave(ev) {
+            if (ev.currentTarget.classList.contains('drop-zone')) {
+                ev.currentTarget.classList.remove('bg-indigo-100');
+            }
+        }
+
+        async function drop(ev, newRole) {
+            ev.preventDefault();
+            const zone = ev.currentTarget;
+            zone.classList.remove('bg-indigo-100');
+
+            if (!draggedUser) return;
+            if (draggedUser.role === newRole) return; // No change
+
+            // Optimistic UI Update
+            const originalRole = draggedUser.role;
+            showNotification(`Moving ${draggedUser.name} to ${newRole}...`, 'info');
+
+            try {
+                const res = await fetch(`${API_BASE}/api/users/update_role`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: draggedUser.email, role: newRole })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showNotification(`Updated: ${draggedUser.name} is now ${newRole}`, 'success');
+                    fetchUsers(); // Refresh to ensure sync
+                } else {
+                    throw new Error(data.error || 'Server error');
+                }
+            } catch (err) {
+                console.error("Drop failed:", err);
+                showNotification(`Failed to move user: ${err.message}`, 'error');
+            } finally {
+                draggedUser = null;
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (isCameraRunning) {
+                stopCamera();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
