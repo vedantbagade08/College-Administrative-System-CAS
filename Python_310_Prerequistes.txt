@@ -1,0 +1,27 @@
+Python 3.10 Compatible Modules for CAS_V0.7
+
+To fix the "DLL load failed" and "Dependency Conflict" errors, run these commands in your Python 3.10 environment.
+
+1. Clean up incompatible versions
+
+pip uninstall -y tensorflow tensorflow-intel numpy keras tf-keras deepface mediapipe ml-dtypes
+
+
+2. Unified Install (Forces Resolution)
+Run this single command to install everything compatibly:
+
+pip install numpy==1.26.4 tensorflow==2.15.0 tf-keras==2.15.0 ml-dtypes==0.2.0 deepface==0.0.92 mediapipe==0.10.11 opencv-python==4.9.0.80
+
+
+3. Install Support Modules
+
+pip install retina-face==0.0.17 mtcnn==0.1.1 gdown
+
+4. Verify Installation
+Run this command to check if the errors are gone:
+```bash
+python -c "import tensorflow as tf; print('TensorFlow Version:', tf.__version__); from deepface import DeepFace; print('DeepFace Imported Successfully')"
+```
+
+---
+TensorFlow 2.10.0** is the last version with native GPU support on Windows native (non-WSL). If you have an NVIDIA GPU and want to use it, use `tensorflow==2.10.0` instead of `2.15.0`.
